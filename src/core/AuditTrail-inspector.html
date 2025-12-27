@@ -1,0 +1,382 @@
+<!-- File: /src/core/AuditTrail-inspector.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AuditTrail Inspector · Image Compliance</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05060b;
+      --bg-card: #090b16;
+      --border: #191f35;
+      --accent: #4af2c5;
+      --accent-soft: rgba(74, 242, 197, 0.2);
+      --text: #f7f8ff;
+      --muted: #8a94b7;
+      --danger: #ff4b81;
+      --radius-lg: 16px;
+      --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      padding:18px;
+      background: radial-gradient(circle at top,#060918 0,#01020a 50%,#000 100%);
+      color:var(--text);
+      font-family:var(--font-ui);
+      line-height:1.4;
+    }
+    main {
+      max-width:1100px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:minmax(0,1.4fr) minmax(0,2fr);
+      gap:18px;
+    }
+    @media (max-width:900px){
+      main{grid-template-columns:minmax(0,1fr);}
+      body{padding:14px 10px;}
+    }
+    .card{
+      background:linear-gradient(135deg,rgba(13,18,35,0.96),rgba(6,9,20,0.98));
+      border-radius:18px;
+      border:1px solid var(--border);
+      padding:12px 12px 10px;
+      box-shadow:0 18px 50px rgba(0,0,0,0.85);
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+    }
+    .card-title{
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:0.16em;
+      color:var(--muted);
+    }
+    .tag{
+      font-size:11px;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(117,139,207,0.85);
+      color:#c5d1ff;
+    }
+    label{
+      display:block;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.16em;
+      color:var(--muted);
+      margin-bottom:4px;
+    }
+    input,select{
+      width:100%;
+      border-radius:11px;
+      border:1px solid rgba(41,59,113,0.9);
+      background:radial-gradient(circle at top,#151a2f,#050715);
+      color:var(--text);
+      font-family:var(--font-ui);
+      font-size:13px;
+      padding:5px 9px;
+      outline:none;
+      transition:border 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+    input:focus,select:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 1px var(--accent-soft);
+      background:radial-gradient(circle at top,#1b2342,#050918);
+    }
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-top:6px;
+    }
+    .btn-row{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
+    button{
+      border-radius:999px;
+      border:1px solid rgba(74,242,197,0.85);
+      background:radial-gradient(circle at top,rgba(74,242,197,0.25),#031017);
+      color:var(--text);
+      font-family:var(--font-ui);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.16em;
+      padding:7px 13px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:transform 0.1s ease, box-shadow 0.1s ease, background 0.14s ease;
+    }
+    button:hover{
+      transform:translateY(-0.5px);
+      box-shadow:0 11px 26px rgba(0,0,0,0.85);
+      background:radial-gradient(circle at top,rgba(108,255,209,0.3),#021920);
+    }
+    button:active{
+      transform:translateY(0.5px) scale(0.99);
+    }
+    .btn-secondary{
+      border-color:rgba(123,140,207,0.9);
+      background:radial-gradient(circle at top,rgba(116,133,210,0.26),#050819);
+    }
+    .btn-danger{
+      border-color:rgba(255,117,163,0.9);
+      background:radial-gradient(circle at top,rgba(255,75,129,0.3),#16020a);
+      color:#ffe5ef;
+    }
+    .mono{
+      font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,"Courier New",monospace;
+      font-size:12px;
+    }
+    .panel{
+      background:radial-gradient(circle at top,#060716,#020308);
+      border-radius:14px;
+      border:1px solid rgba(25,31,53,0.95);
+      padding:8px;
+      max-height:380px;
+      overflow:auto;
+      color:#e0e7ff;
+      white-space:pre;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-top:6px;
+      flex-wrap:wrap;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .kv{
+      display:inline-flex;
+      align-items:baseline;
+      gap:4px;
+    }
+    .kv strong{
+      font-weight:500;
+      color:#e7edff;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      font-size:10px;
+      border-radius:999px;
+      padding:2px 7px;
+      border:1px solid rgba(126,148,217,0.9);
+      text-transform:uppercase;
+      letter-spacing:0.15em;
+      color:#c3cffd;
+    }
+    .badge span{
+      width:6px;height:6px;border-radius:50%;
+      background:linear-gradient(135deg,#4af2c5,#3ea8ff);
+      box-shadow:0 0 10px rgba(92,203,255,0.85);
+    }
+    .small{font-size:10px;color:var(--muted);}
+  </style>
+</head>
+<body>
+<main>
+  <!-- LEFT: controls / filters -->
+  <section class="card" aria-label="AuditTrail controls">
+    <header class="card-header">
+      <div class="card-title">AuditTrail · in-memory buffer</div>
+      <div class="badge">
+        <span></span>
+        maxEntries: 2048
+      </div>
+    </header>
+
+    <div class="grid-2">
+      <div>
+        <label for="limit-input">getRecent(limit)</label>
+        <input id="limit-input" type="number" min="1" max="2048" value="100" />
+      </div>
+      <div>
+        <label for="status-filter">Status filter</label>
+        <select id="status-filter">
+          <option value="">any</option>
+          <option value="allow">allow</option>
+          <option value="allow_with_filters">allow_with_filters</option>
+          <option value="age_gate">age_gate</option>
+          <option value="reject">reject</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <label for="text-filter">Text contains</label>
+        <input id="text-filter" type="text" placeholder="match in originalPrompt/rewrittenPrompt" />
+      </div>
+      <div>
+        <label for="note-filter">Note contains</label>
+        <input id="note-filter" type="text" placeholder="e.g. Visual Rights Charter" />
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" type="button" id="btn-snapshot">
+        snapshot buffer
+      </button>
+      <button class="btn-secondary" type="button" id="btn-export">
+        export as json
+      </button>
+      <button class="btn-danger" type="button" id="btn-clear">
+        clear (runtime only)
+      </button>
+    </div>
+
+    <div class="row">
+      <div class="kv small">
+        <strong>Entries loaded</strong>
+        <span id="entries-count">0</span>
+      </div>
+      <div class="kv small">
+        <strong>Filtered</strong>
+        <span id="entries-filtered">0</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="small">
+        Mirrors
+        <strong>record()</strong>
+        normalization:
+        <span class="kv">
+          <strong>id · timestamp · originalPrompt · rewrittenPrompt · classification · postClassification · policyDecision · mitigations · note</strong>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: preview / JSON view -->
+  <section class="card" aria-label="AuditTrail preview">
+    <header class="card-header">
+      <div class="card-title">Audit buffer preview · latest entries</div>
+      <div class="tag">client-side inspector (no server changes)</div>
+    </header>
+
+    <div class="panel mono" id="buffer-panel">
+      <!-- JSON dump -->
+      []
+    </div>
+
+    <div class="row">
+      <div class="small">
+        Use as a drop-in debug console for
+        <strong>AuditTrail.getRecent(limit)</strong>
+        snapshots when wiring into your Node process.
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const limitInput = document.getElementById("limit-input");
+  const statusFilter = document.getElementById("status-filter");
+  const textFilter = document.getElementById("text-filter");
+  const noteFilter = document.getElementById("note-filter");
+  const bufferPanel = document.getElementById("buffer-panel");
+  const entriesCount = document.getElementById("entries-count");
+  const entriesFiltered = document.getElementById("entries-filtered");
+
+  let lastSnapshot = [];
+
+  function applyFilters() {
+    const status = statusFilter.value;
+    const text = (textFilter.value || "").toLowerCase();
+    const note = (noteFilter.value || "").toLowerCase();
+
+    const filtered = lastSnapshot.filter(entry => {
+      if (status && entry.policyDecision && entry.policyDecision.status !== status) {
+        return false;
+      }
+      if (text) {
+        const target =
+          (entry.originalPrompt || "") +
+          " " +
+          (entry.rewrittenPrompt || "");
+        if (!target.toLowerCase().includes(text)) return false;
+      }
+      if (note) {
+        const n = (entry.note || "").toLowerCase();
+        if (!n.includes(note)) return false;
+      }
+      return true;
+    });
+
+    bufferPanel.textContent = JSON.stringify(filtered, null, 2);
+    entriesFiltered.textContent = filtered.length;
+  }
+
+  document.getElementById("btn-snapshot").addEventListener("click", () => {
+    try {
+      const dataJson = window.prompt(
+        "Paste the JSON array from AuditTrail.getRecent(limit) here.\n" +
+        "Hint: run in Node: console.log(JSON.stringify(audit.getRecent(" +
+        (Number(limitInput.value) || 100) +
+        "), null, 2));"
+      );
+      if (!dataJson) return;
+      const parsed = JSON.parse(dataJson);
+      if (!Array.isArray(parsed)) {
+        alert("Expected a JSON array.");
+        return;
+      }
+      lastSnapshot = parsed;
+      entriesCount.textContent = parsed.length;
+      applyFilters();
+    } catch (e) {
+      alert("Invalid JSON: " + e);
+    }
+  });
+
+  document.getElementById("btn-export").addEventListener("click", () => {
+    if (!lastSnapshot.length) {
+      alert("No snapshot loaded yet.");
+      return;
+    }
+    const blob = new Blob([JSON.stringify(lastSnapshot, null, 2)], {
+      type: "application/json;charset=utf-8"
+    });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "audittrail-snapshot.json";
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  });
+
+  document.getElementById("btn-clear").addEventListener("click", () => {
+    if (!window.confirm("This clears ONLY the view here. It does NOT touch the Node process buffer.\n\nProceed?")) {
+      return;
+    }
+    lastSnapshot = [];
+    bufferPanel.textContent = "[]";
+    entriesCount.textContent = "0";
+    entriesFiltered.textContent = "0";
+  });
+
+  statusFilter.addEventListener("change", applyFilters);
+  textFilter.addEventListener("input", applyFilters);
+  noteFilter.addEventListener("input", applyFilters);
+</script>
+</body>
+</html>
