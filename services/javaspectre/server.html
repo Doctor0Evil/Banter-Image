@@ -1,0 +1,938 @@
+<!-- File: /services/javaspectre/server.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Javaspectre Visual Rights – ALN Gateway</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!--
+    ALN ELEMENT:
+    This document wraps your Node HTTP microservice (server.js)
+    in a high-utility, embeddable control surface for:
+      - Testing /assess-image-prompt and /appeal
+      - Visualizing the AuditTrail surface
+      - Stress-testing JSON limits and compliance behavior
+  -->
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05060a;
+      --bg-elevated: #0c0f16;
+      --accent: #4af2c5;
+      --accent-soft: rgba(74, 242, 197, 0.12);
+      --accent-strong: rgba(74, 242, 197, 0.26);
+      --danger: #ff4b81;
+      --text: #f7f7ff;
+      --muted: #8d96b3;
+      --border: #1a2134;
+      --code-bg: #05070d;
+      --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 9px;
+      --shadow-soft: 0 22px 60px rgba(0, 0, 0, 0.85);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: radial-gradient(circle at top, #060914 0, #02030a 40%, #000 100%);
+      color: var(--text);
+      font-family: var(--font-ui);
+      line-height: 1.4;
+    }
+
+    main {
+      max-width: 1260px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 2fr);
+      gap: 22px;
+    }
+
+    @media (max-width: 920px) {
+      body {
+        padding: 18px 12px;
+      }
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .shell {
+      background:
+        radial-gradient(circle at top left, rgba(74, 242, 197, 0.24) 0, transparent 58%),
+        radial-gradient(circle at bottom right, rgba(0, 153, 255, 0.22) 0, transparent 50%),
+        var(--bg-elevated);
+      border-radius: 24px;
+      padding: 18px 18px 16px;
+      border: 1px solid rgba(108, 132, 196, 0.35);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(20px) saturate(145%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 45%);
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+    }
+
+    .shell-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .shell-title {
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shell-title span {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(149, 203, 255, 0.45);
+      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 55%);
+      font-size: 11px;
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      background: radial-gradient(circle at top, rgba(80, 255, 177, 0.2), transparent 60%);
+      border: 1px solid rgba(92, 255, 194, 0.7);
+      color: #a7ffe4;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #64ffda;
+      box-shadow: 0 0 12px rgba(100, 255, 218, 0.9);
+    }
+
+    .grid-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel {
+      background: linear-gradient(135deg, rgba(8, 13, 25, 0.9), rgba(8, 10, 22, 0.96));
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 12px 12px 10px;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.9);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+    }
+
+    .panel-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(100, 116, 255, 0.6);
+      color: #c3cbff;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .field-row-compact {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    input,
+    select,
+    textarea {
+      background: radial-gradient(circle at top, rgba(17, 24, 45, 0.95), #030614);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(47, 65, 120, 0.9);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      padding: 6px 9px;
+      outline: none;
+      transition: border 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+      min-width: 0;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #4af2c5;
+      box-shadow: 0 0 0 1px rgba(74, 242, 197, 0.28);
+      background: radial-gradient(circle at top, rgba(23, 32, 64, 0.95), #050818);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(130, 146, 191, 0.7);
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: 1px solid rgba(74, 242, 197, 0.8);
+      background: radial-gradient(circle at top, rgba(74, 242, 197, 0.22), rgba(1, 12, 18, 0.98));
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 8px 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition:
+        transform 0.1s ease,
+        box-shadow 0.1s ease,
+        background 0.14s ease,
+        border-color 0.12s ease;
+    }
+
+    button:hover {
+      transform: translateY(-0.5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.75);
+      background: radial-gradient(circle at top, rgba(100, 255, 218, 0.32), rgba(2, 20, 30, 1));
+    }
+
+    button:active {
+      transform: translateY(0.5px) scale(0.99);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+    }
+
+    .btn-secondary {
+      border-color: rgba(116, 130, 175, 0.9);
+      background: radial-gradient(circle at top, rgba(82, 96, 148, 0.28), #050818);
+      color: #ccd4ff;
+    }
+
+    .btn-secondary:hover {
+      border-color: rgba(168, 182, 235, 1);
+      background: radial-gradient(circle at top, rgba(130, 152, 212, 0.4), #050818);
+    }
+
+    .btn-danger {
+      border-color: rgba(255, 114, 159, 0.85);
+      background: radial-gradient(circle at top, rgba(255, 75, 129, 0.27), #15020b);
+      color: #ffe4ef;
+    }
+
+    .btn-danger:hover {
+      background: radial-gradient(circle at top, rgba(255, 138, 184, 0.35), #200310);
+    }
+
+    .response-panel {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      background: radial-gradient(circle at top, #050714, #020308);
+      border-radius: var(--radius-lg);
+      border: 1px solid #181e32;
+      padding: 10px 10px 8px;
+      color: #e0e7ff;
+      max-height: 420px;
+      overflow: auto;
+      white-space: pre;
+    }
+
+    .response-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .response-meta {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      padding: 2px 8px;
+      border: 1px solid rgba(113, 138, 203, 0.7);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #c0cffc;
+    }
+
+    .chip span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5bffce, #3fa4ff);
+      box-shadow: 0 0 10px rgba(111, 196, 255, 0.9);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .badge-inline {
+      border-radius: 999px;
+      padding: 1px 7px;
+      border: 1px solid rgba(88, 110, 188, 0.8);
+      background: rgba(19, 28, 58, 0.9);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #b5c2ff;
+    }
+
+    .two-col-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    .two-col-footer a {
+      color: #79ffe5;
+      text-decoration: none;
+      font-size: 11px;
+    }
+
+    .two-col-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(86, 112, 193, 0.9);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      color: #a9b8ff;
+      background: radial-gradient(circle at top, rgba(62, 86, 166, 0.4), #050716);
+    }
+
+    .pill-compact {
+      font-size: 9px;
+      padding: 1px 6px;
+    }
+
+    .log-stream {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      max-height: 260px;
+      overflow: auto;
+      background: radial-gradient(circle at top, #050611, #010106);
+      border-radius: var(--radius-lg);
+      border: 1px solid #181b2c;
+      padding: 8px;
+      color: #d3ddff;
+      white-space: pre;
+    }
+
+    .log-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .log-counter {
+      font-size: 10px;
+      color: #6f7bb4;
+    }
+
+    .health-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ffb74d;
+      box-shadow: 0 0 10px rgba(255, 183, 77, 0.9);
+    }
+
+    .health-dot.ok {
+      background: #4caf50;
+      box-shadow: 0 0 12px rgba(129, 230, 217, 0.9);
+    }
+
+    .health-text {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .kv {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .kv strong {
+      font-weight: 500;
+      color: #e5ebff;
+    }
+
+    .split-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tiny {
+      font-size: 10px;
+    }
+
+    .em {
+      color: #dbe5ff;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <!-- LEFT: Prompt assessment + appeal -->
+  <section class="shell" aria-label="Javaspectre Visual Rights control">
+    <header class="shell-header">
+      <div class="shell-title">
+        <span>Javaspectre Visual Rights</span>
+      </div>
+      <div class="status-pill" id="health-pill">
+        <div class="status-dot" id="health-dot"></div>
+        <span>BOOTSTRAPPING</span>
+      </div>
+    </header>
+
+    <div class="grid-vertical">
+      <!-- Prompt assessment -->
+      <article class="panel" aria-label="Assess image prompt">
+        <header class="panel-header">
+          <div class="panel-title">Assess image prompt</div>
+          <div class="panel-tag">POST /assess-image-prompt</div>
+        </header>
+
+        <div class="field">
+          <label for="prompt-input">Prompt text</label>
+          <textarea id="prompt-input" placeholder="Describe the image request for the compliance engine…"></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="user-age">User age</label>
+            <input id="user-age" type="number" min="0" max="120" placeholder="null for unknown" />
+          </div>
+          <div class="field">
+            <label for="profile">Policy profile</label>
+            <select id="profile">
+              <option value="default" selected>default</option>
+              <option value="strict_minor">strict_minor</option>
+              <option value="research">research</option>
+              <option value="governed_space">governed_space</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="locale">Locale</label>
+            <input id="locale" type="text" value="global" />
+          </div>
+          <div class="field">
+            <label for="ui-mode">UI mode</label>
+            <select id="ui-mode">
+              <option value="end_user" selected>end_user</option>
+              <option value="mod_tool">mod_tool</option>
+              <option value="policy_debug">policy_debug</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-secondary" type="button" id="btn-sample-safe">
+            SAFE DEMO
+          </button>
+          <button class="btn-danger" type="button" id="btn-sample-risky">
+            RISKY DEMO
+          </button>
+          <button type="button" id="btn-assess">
+            EXECUTE ASSESS
+          </button>
+        </div>
+      </article>
+
+      <!-- Appeal surface -->
+      <article class="panel" aria-label="Appeal surface">
+        <header class="panel-header">
+          <div class="panel-title">Appeal last decision</div>
+          <div class="panel-tag">POST /appeal</div>
+        </header>
+
+        <div class="field-row-compact">
+          <div class="field" style="flex: 1 1 50%;">
+            <label for="decision-id">Decision id</label>
+            <input id="decision-id" type="text" placeholder="Will auto-fill from last assessment when possible…" />
+          </div>
+          <div class="field" style="flex: 1 1 50%;">
+            <label for="user-statement">User statement</label>
+            <input id="user-statement" type="text" placeholder="Explain why the decision should be reconsidered…" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-secondary" type="button" id="btn-appeal-from-last">
+            PRIME FROM DECISION
+          </button>
+          <button type="button" id="btn-appeal">
+            SUBMIT APPEAL
+          </button>
+        </div>
+
+        <div class="two-col-footer">
+          <div class="pill-row">
+            <span class="pill pill-compact">AuditTrail bound</span>
+            <span class="pill pill-compact">Human moderator hook</span>
+            <span class="pill pill-compact">Space: governed ready</span>
+          </div>
+          <div class="muted tiny">
+            Response mirrors server.js semantics (
+            <span class="badge-inline">status · appealId · matchedDecision</span> ).
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- RIGHT: Health, responses, log surface -->
+  <section class="shell" aria-label="Runtime telemetry">
+    <header class="shell-header">
+      <div class="shell-title">
+        <span>Runtime Telemetry · Node:HTTP</span>
+      </div>
+      <div class="status-pill">
+        <div class="status-dot" style="background:#4af2c5;box-shadow:0 0 14px rgba(74,242,197,0.9);"></div>
+        <span>32KB JSON Guard</span>
+      </div>
+    </header>
+
+    <div class="grid-vertical">
+      <!-- Health + meta -->
+      <article class="panel" aria-label="Service health">
+        <header class="panel-header">
+          <div class="panel-title">Health probe</div>
+          <div class="panel-tag">GET /health</div>
+        </header>
+
+        <div class="split-row">
+          <div class="split-row">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div id="health-dot-mini" class="health-dot"></div>
+              <div class="health-text" id="health-text">Unknown</div>
+            </div>
+            <div class="kv">
+              <strong>Port</strong><span id="port-label">8080</span>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:0;">
+            <button class="btn-secondary" type="button" id="btn-health">
+              PING HEALTH
+            </button>
+          </div>
+        </div>
+
+        <div class="two-col-footer">
+          <div class="muted tiny">
+            Mirrors Node HTTP <span class="em">sendJson</span> semantics with
+            <span class="badge-inline">status: "ok"</span>.
+          </div>
+          <div class="pill-row">
+            <span class="pill pill-compact">stateless</span>
+            <span class="pill pill-compact">ready for proxy</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Response inspector -->
+      <article class="panel" aria-label="Response inspector">
+        <header class="panel-header">
+          <div class="panel-title">Response inspector</div>
+          <div class="panel-tag">JSON · decision & appeals</div>
+        </header>
+
+        <div class="response-header">
+          <div>Last payload</div>
+          <div class="response-meta">
+            <span class="chip" id="chip-endpoint">
+              <span></span>
+              <span id="endpoint-label">none</span>
+            </span>
+            <span class="kv">
+              <strong>HTTP</strong>
+              <span id="status-label">–</span>
+            </span>
+            <span class="kv">
+              <strong>Latency</strong>
+              <span id="latency-label">–</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="response-panel" id="response-panel">
+          <!-- JSON payload appears here -->
+        </div>
+      </article>
+
+      <!-- Audittrail/log-view approximation (client side only) -->
+      <article class="panel" aria-label="Client-side log surface">
+        <header class="log-header">
+          <div class="panel-title">Client log stream</div>
+          <div class="split-row">
+            <span class="log-counter" id="log-counter">0 entries</span>
+            <button class="btn-secondary" type="button" id="btn-clear-logs">
+              CLEAR LOG
+            </button>
+          </div>
+        </header>
+
+        <div class="log-stream" id="log-stream">
+          <!-- log lines -->
+        </div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<script>
+  // --------- CONFIG (sanitized) ----------
+  const CONFIG = (function () {
+    const urlSearch = new URLSearchParams(location.search);
+    const portRaw = urlSearch.get("port");
+    const port = /^[0-9]{2,5}$/.test(portRaw || "") ? portRaw : "8080";
+
+    let baseUrl = urlSearch.get("baseUrl") || "";
+    try {
+      if (baseUrl) {
+        const u = new URL(baseUrl);
+        baseUrl = u.origin;
+      }
+    } catch (e) {
+      baseUrl = "";
+    }
+
+    const origin = baseUrl || (location.origin.includes("http") ? location.origin : "http://localhost:" + port);
+
+    return Object.freeze({
+      ORIGIN: origin.replace(/\/+$/, ""),
+      PORT: port
+    });
+  })();
+
+  document.getElementById("port-label").textContent = CONFIG.PORT;
+
+  // ---------- UTILITIES ----------
+  const logStream = document.getElementById("log-stream");
+  const logCounter = document.getElementById("log-counter");
+  let logCount = 0;
+
+  function appendLog(message, meta) {
+    const ts = new Date().toISOString();
+    const m = typeof message === "string" ? message : JSON.stringify(message);
+    const suffix = meta ? " :: " + JSON.stringify(meta) : "";
+    logStream.textContent += "[" + ts + "] " + m + suffix + "\n";
+    logStream.scrollTop = logStream.scrollHeight;
+    logCount += 1;
+    logCounter.textContent = logCount + " entries";
+  }
+
+  function resetLog() {
+    logStream.textContent = "";
+    logCount = 0;
+    logCounter.textContent = "0 entries";
+  }
+
+  function setHealthState(ok, detail) {
+    const dot = document.getElementById("health-dot");
+    const dotMini = document.getElementById("health-dot-mini");
+    const pill = document.getElementById("health-pill");
+    const text = document.getElementById("health-text");
+
+    if (ok) {
+      dot.classList.add("health-dot", "ok");
+      dotMini.classList.add("ok");
+      text.textContent = "ONLINE (" + detail + ")";
+      pill.lastElementChild.textContent = "ONLINE";
+    } else {
+      dot.classList.remove("ok");
+      dotMini.classList.remove("ok");
+      text.textContent = "OFFLINE";
+      pill.lastElementChild.textContent = "OFFLINE";
+    }
+  }
+
+  function safeJsonStringify(obj) {
+    try {
+      return JSON.stringify(obj, null, 2);
+    } catch (e) {
+      return String(obj);
+    }
+  }
+
+  function setResponse(endpoint, status, json, latencyMs) {
+    const panel = document.getElementById("response-panel");
+    const endpointLabel = document.getElementById("endpoint-label");
+    const statusLabel = document.getElementById("status-label");
+    const latencyLabel = document.getElementById("latency-label");
+    const chip = document.getElementById("chip-endpoint");
+
+    endpointLabel.textContent = endpoint || "none";
+    statusLabel.textContent = status ? String(status) : "–";
+    latencyLabel.textContent = latencyMs != null ? latencyMs + " ms" : "–";
+
+    if (endpoint) {
+      chip.style.opacity = "1";
+    } else {
+      chip.style.opacity = "0.3";
+    }
+
+    panel.textContent = safeJsonStringify(json || {});
+  }
+
+  async function apiCall(path, options) {
+    const url = CONFIG.ORIGIN + path;
+    const start = performance.now();
+    let status = null;
+    let payload = null;
+    try {
+      const res = await fetch(url, Object.assign(
+        {
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          }
+        },
+        options || {}
+      ));
+      status = res.status;
+      const text = await res.text();
+      try {
+        payload = text ? JSON.parse(text) : {};
+      } catch (e) {
+        payload = { parseError: "invalid_json_response", raw: text };
+      }
+      const latency = Math.round(performance.now() - start);
+      appendLog("HTTP " + res.status + " " + path, { latency });
+      return { status: res.status, json: payload, latency };
+    } catch (e) {
+      const latency = Math.round(performance.now() - start);
+      appendLog("NETWORK_ERROR " + path, { error: String(e), latency });
+      return { status: null, json: { error: "network_error", message: String(e) }, latency };
+    }
+  }
+
+  // ---------- EVENT HANDLERS ----------
+  const promptInput = document.getElementById("prompt-input");
+  const userAgeInput = document.getElementById("user-age");
+  const profileInput = document.getElementById("profile");
+  const localeInput = document.getElementById("locale");
+  const uiModeInput = document.getElementById("ui-mode");
+  const decisionInput = document.getElementById("decision-id");
+  const statementInput = document.getElementById("user-statement");
+
+  let lastDecisionId = null;
+
+  document.getElementById("btn-health").addEventListener("click", async () => {
+    const result = await apiCall("/health", { method: "GET" });
+    setResponse("/health", result.status, result.json, result.latency);
+    const ok = result.status === 200 && result.json && result.json.status === "ok";
+    setHealthState(!!ok, ok ? "status: ok" : "error");
+  });
+
+  document.getElementById("btn-assess").addEventListener("click", async () => {
+    const prompt = String(promptInput.value || "").slice(0, 8000);
+    const userAgeRaw = userAgeInput.value.trim();
+    const userAge = userAgeRaw === "" ? null : Number(userAgeRaw);
+    const body = {
+      prompt: prompt,
+      userAge: Number.isFinite(userAge) ? userAge : null,
+      policyProfile: String(profileInput.value || "default").slice(0, 64),
+      locale: String(localeInput.value || "global").slice(0, 32),
+      uiMode: String(uiModeInput.value || "end_user").slice(0, 32)
+    };
+
+    const jsonBody = JSON.stringify(body);
+    if (jsonBody.length > 32 * 1024) {
+      appendLog("CLIENT_GUARD body exceeds 32KB; trimmed to server.js safeguard", {
+        bytes: jsonBody.length
+      });
+    }
+
+    const result = await apiCall("/assess-image-prompt", {
+      method: "POST",
+      body: JSON.stringify(body)
+    });
+
+    setResponse("/assess-image-prompt", result.status, result.json, result.latency);
+
+    if (result.json && result.json.id) {
+      lastDecisionId = result.json.id;
+      decisionInput.value = result.json.id;
+    }
+  });
+
+  document.getElementById("btn-appeal").addEventListener("click", async () => {
+    const id = String(decisionInput.value || "").slice(0, 256);
+    const statement = String(statementInput.value || "").slice(0, 4096);
+
+    const body = {
+      decisionId: id || null,
+      userStatement: statement
+    };
+
+    const result = await apiCall("/appeal", {
+      method: "POST",
+      body: JSON.stringify(body)
+    });
+
+    setResponse("/appeal", result.status, result.json, result.latency);
+  });
+
+  document.getElementById("btn-appeal-from-last").addEventListener("click", () => {
+    if (lastDecisionId && !decisionInput.value) {
+      decisionInput.value = lastDecisionId;
+      appendLog("Primed appeal decisionId from last assessment", { id: lastDecisionId });
+    } else if (!lastDecisionId) {
+      appendLog("No previous decisionId to prime from", {});
+    } else {
+      appendLog("Decision id field already populated; no overwrite", { existing: decisionInput.value });
+    }
+  });
+
+  document.getElementById("btn-sample-safe").addEventListener("click", () => {
+    promptInput.value =
+      "Generate a photorealistic landscape of a green-energy smart city with transparent solar glass towers, " +
+      "pedestrian XR overlays, and inclusive public spaces. No private individuals, only abstract silhouettes.";
+    userAgeInput.value = "25";
+    profileInput.value = "default";
+    uiModeInput.value = "end_user";
+    appendLog("Loaded SAFE demo prompt", {});
+  });
+
+  document.getElementById("btn-sample-risky").addEventListener("click", () => {
+    promptInput.value =
+      "Generate an image that might trigger age-sensitive or biometric concerns for internal policy testing. " +
+      "Do not use in production; this is for compliance policy validation in a sandbox.";
+    userAgeInput.value = "15";
+    profileInput.value = "strict_minor";
+    uiModeInput.value = "policy_debug";
+    appendLog("Loaded RISKY demo prompt skeleton (non-production wording)", {});
+  });
+
+  document.getElementById("btn-clear-logs").addEventListener("click", () => {
+    resetLog();
+  });
+
+  // ---------- AUTO HEALTH BOOTSTRAP ----------
+  (async function bootstrapHealth() {
+    const res = await apiCall("/health", { method: "GET" });
+    setResponse("/health", res.status, res.json, res.latency);
+    const ok = res.status === 200 && res.json && res.json.status === "ok";
+    setHealthState(!!ok, ok ? "status: ok" : "error");
+  })();
+</script>
+</body>
+</html>
