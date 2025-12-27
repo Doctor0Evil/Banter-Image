@@ -4,6 +4,10 @@ import { PromptClassifier } from "../core/PromptClassifier.js";
 import { PolicyEngine } from "../core/PolicyEngine.js";
 import { PromptRewriter } from "../core/PromptRewriter.js";
 import { AuditTrail } from "../core/AuditTrail.js";
+import {
+  getVisualRightsCharter,
+  mapDecisionToCharter
+} from "../charter/visualRightsCharter.js";
 
 /**
  * status:
@@ -14,12 +18,14 @@ export async function assessImagePrompt(promptText, options = {}) {
     userAge = null,
     locale = "global",
     policyProfile = "default",
+    uiMode = "developer" // "developer" | "end_user"
   } = options;
 
   const classifier = new PromptClassifier();
   const policyEngine = new PolicyEngine();
   const rewriter = new PromptRewriter();
   const audit = AuditTrail.getInstance();
+  const charter = getVisualRightsCharter();
 
   const now = new Date().toISOString();
   const id = `trace_${now.replace(/[^0-9]/g, "")}`;
@@ -58,22 +64,19 @@ export async function assessImagePrompt(promptText, options = {}) {
     ? finalDecision.status
     : initialDecision.status;
 
-  audit.record({
-    id,
-    timestamp: now,
+  const charterMapping = mapDecisionToCharter(finalDecision);
+
+  const uiMessage = buildUiMessage({
     originalPrompt: promptText,
-    rewrittenPrompt: rewrittenPrompt === promptText ? null : rewrittenPrompt,
-    classification,
-    postClassification,
-    policyDecision: finalDecision,
+    rewrittenPrompt,
+    status: effectiveStatus,
+    decision: finalDecision,
     mitigations,
-    note:
-      effectiveStatus === "reject"
-        ? "Prompt rejected after evaluation/mitigation."
-        : "Prompt approved with current policy."
+    charterMapping,
+    uiMode
   });
 
-  return {
+  const response = {
     id,
     status: effectiveStatus,
     requiresAgeCheck: effectiveStatus === "age_gate",
@@ -82,29 +85,75 @@ export async function assessImagePrompt(promptText, options = {}) {
     filters: finalDecision.filters,
     prompt: rewrittenPrompt,
     mitigations,
-    uiMessage: buildUiMessage(promptText, rewrittenPrompt, effectiveStatus, finalDecision, mitigations)
+    uiMessage,
+    charter: {
+      version: charter.version,
+      honored: charterMapping.honored,
+      limited: charterMapping.limited
+    },
+    policyProfile,
+    locale,
+    classification,
+    policyVersion: "v1.0.0"
   };
+
+  audit.record({
+    ...response,
+    timestamp: now,
+    originalPrompt: promptText,
+    note:
+      effectiveStatus === "reject"
+        ? "Prompt rejected after evaluation and mitigation."
+        : "Prompt approved under active policy with Visual Rights Charter applied."
+  });
+
+  return response;
 }
 
-function buildUiMessage(original, rewritten, status, decision, mitigations) {
+function buildUiMessage({
+  originalPrompt,
+  rewrittenPrompt,
+  status,
+  decision,
+  mitigations,
+  charterMapping,
+  uiMode
+}) {
+  const same = originalPrompt.trim() === rewrittenPrompt.trim();
+  const rightsHonored = charterMapping.honored.join(", ");
+  const rightsLimited = charterMapping.limited.join(", ");
+
   if (status === "allow") {
-    return "ok! here's your image.";
+    if (uiMode === "end_user") {
+      return "ok! here's your image.";
+    }
+    return `ok! here's your image. (rights honored: ${rightsHonored || "R1_MATURE_EXPRESSION"})`;
   }
+
   if (status === "allow_with_filters") {
-    const f = decision.filters.length ? ` (with filters: ${decision.filters.join(", ")})` : "";
-    return `ok! here's your image${f}.`;
+    const f = decision.filters.length ? ` with filters: ${decision.filters.join(", ")}` : "";
+    if (uiMode === "end_user") {
+      return `ok! here's your image${f}.`;
+    }
+    return `ok! here's your image${f}. (rights honored: ${rightsHonored || "R1_MATURE_EXPRESSION"})`;
   }
+
   if (status === "age_gate") {
-    return "age check required before generating this image.";
+    if (uiMode === "end_user") {
+      return "age verification required before generating this image.";
+    }
+    return `age verification required. (limited rights: ${rightsLimited || "R9_JURISDICTION_AWARE_RIGHTS_FORWARD"})`;
   }
-  // reject: soft, explicit
+
   const reason = decision.blockReasons.join(", ") || "policy_violation";
   const mitigationNote = mitigations.length
     ? ` A safer variant was attempted via: ${mitigations.join(", ")}.`
     : "";
-  const same = original.trim() === rewritten.trim();
   const rewriteNote = same
     ? ""
-    : ` Suggested safer prompt: "${rewritten}".`;
-  return `image-generation failed due to ${reason}.${rewriteNote}${mitigationNote}`;
+    : ` Suggested safer prompt: "${rewrittenPrompt}".`;
+  if (uiMode === "end_user") {
+    return `image-generation failed due to ${reason}.${rewriteNote}`;
+  }
+  return `image-generation failed due to ${reason}.${rewriteNote}${mitigationNote} (rights limited: ${rightsLimited || "none"})`;
 }
