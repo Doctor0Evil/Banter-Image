@@ -1,0 +1,687 @@
+<!-- File: /src/imageCompliance/visual-rights-assessment.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Visual Rights Charter · Assessment Trace</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05060b;
+      --bg-card: #080b15;
+      --border: #1b2440;
+      --accent: #4af2c5;
+      --accent-soft: rgba(74, 242, 197, 0.18);
+      --text: #f7f8ff;
+      --muted: #8b95b9;
+      --danger: #ff4b81;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: radial-gradient(circle at top, #070a16 0, #01020b 50%, #000 100%);
+      color: var(--text);
+      font-family: var(--font-ui);
+      line-height: 1.4;
+    }
+
+    main {
+      max-width: 1140px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 2.2fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: minmax(0,1fr);
+      }
+      body {
+        padding: 14px 10px;
+      }
+    }
+
+    .card {
+      background: linear-gradient(135deg, rgba(13,17,33,0.96), rgba(7,10,22,0.98));
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      padding: 14px 14px 10px;
+      box-shadow: 0 16px 44px rgba(0,0,0,0.8);
+    }
+
+    .card-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(117,139,207,0.8);
+      color: #c7d2ff;
+    }
+
+    label {
+      display:block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      margin-bottom:4px;
+    }
+
+    textarea, select, input {
+      width:100%;
+      border-radius: var(--radius-md);
+      border:1px solid rgba(40,57,108,0.9);
+      background: radial-gradient(circle at top, #14192b, #030716);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      padding:6px 9px;
+      outline:none;
+      transition:border 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    textarea {
+      min-height:110px;
+      resize:vertical;
+    }
+
+    textarea:focus,
+    select:focus,
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+      background: radial-gradient(circle at top, #192241, #050919);
+    }
+
+    .grid-2 {
+      display:grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:8px;
+    }
+
+    .btn-row {
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
+
+    button {
+      border-radius:999px;
+      border:1px solid rgba(74,242,197,0.85);
+      background: radial-gradient(circle at top, rgba(74,242,197,0.25), #031017);
+      color:var(--text);
+      font-family:var(--font-ui);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.16em;
+      padding:7px 13px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      transition:transform 0.1s ease, box-shadow 0.1s ease, background 0.14s ease;
+    }
+
+    button:hover {
+      transform:translateY(-0.5px);
+      box-shadow:0 10px 22px rgba(0,0,0,0.85);
+      background: radial-gradient(circle at top, rgba(108,255,209,0.33), #021920);
+    }
+
+    button:active {
+      transform:translateY(0.5px) scale(0.99);
+    }
+
+    .btn-secondary {
+      border-color:rgba(122,140,205,0.9);
+      background: radial-gradient(circle at top, rgba(108,132,214,0.24), #050819);
+    }
+
+    .badge {
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      font-size:10px;
+      border-radius:999px;
+      padding:2px 7px;
+      border:1px solid rgba(125,147,215,0.9);
+      text-transform:uppercase;
+      letter-spacing:0.15em;
+      color:#c3cffd;
+    }
+
+    .badge span {
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background: linear-gradient(135deg,#4af2c5,#3ea8ff);
+      box-shadow:0 0 10px rgba(88,200,255,0.85);
+    }
+
+    .mono {
+      font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,"Courier New",monospace;
+      font-size:12px;
+    }
+
+    .panel {
+      background: radial-gradient(circle at top,#060716,#020308);
+      border-radius: 14px;
+      border:1px solid rgba(27,36,66,0.9);
+      padding:8px;
+      margin-top:8px;
+      max-height:360px;
+      overflow:auto;
+      white-space:pre;
+      color:#e0e7ff;
+    }
+
+    .row {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-top:4px;
+      flex-wrap:wrap;
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .kv {
+      display:inline-flex;
+      align-items:baseline;
+      gap:4px;
+    }
+
+    .kv strong {
+      font-weight:500;
+      color:#e8edff;
+    }
+
+    .pill-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:5px;
+      margin-top:4px;
+    }
+
+    .pill {
+      font-size:10px;
+      padding:2px 7px;
+      border-radius:999px;
+      border:1px solid rgba(87,114,199,0.9);
+      color:#b4c4ff;
+      text-transform:uppercase;
+      letter-spacing:0.13em;
+      background: radial-gradient(circle at top,rgba(63,89,167,0.4),#040718);
+    }
+
+    .small {
+      font-size:10px;
+      color:var(--muted);
+    }
+  </style>
+</head>
+<body>
+<main>
+  <!-- LEFT: inputs / options -->
+  <section class="card" aria-label="Visual rights assessment request">
+    <header class="card-header">
+      <div class="card-title">Assess image prompt · Visual Rights</div>
+      <div class="badge">
+        <span></span>
+        trace_id builder
+      </div>
+    </header>
+
+    <div>
+      <label for="original-prompt">Original prompt text</label>
+      <textarea id="original-prompt" placeholder="Paste the raw prompt sent into assessImagePrompt(promptText, options)…"></textarea>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <label for="user-age">User age (nullable)</label>
+        <input id="user-age" type="number" min="0" max="120" placeholder="null → unknown" />
+      </div>
+      <div>
+        <label for="locale">Locale</label>
+        <input id="locale" type="text" value="global" />
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:10px;">
+      <div>
+        <label for="policy-profile">Policy profile</label>
+        <select id="policy-profile">
+          <option value="default" selected>default</option>
+          <option value="strict_minor">strict_minor</option>
+          <option value="research">research</option>
+          <option value="governed_space">governed_space</option>
+        </select>
+      </div>
+      <div>
+        <label for="ui-mode">UI mode</label>
+        <select id="ui-mode">
+          <option value="developer">developer</option>
+          <option value="end_user">end_user</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" type="button" id="btn-seed-allow">
+        seed allow
+      </button>
+      <button class="btn-secondary" type="button" id="btn-seed-agegate">
+        seed age_gate
+      </button>
+      <button class="btn-secondary" type="button" id="btn-seed-block">
+        seed reject
+      </button>
+    </div>
+
+    <div class="btn-row">
+      <button type="button" id="btn-simulate-allow">
+        simulate allow trace
+      </button>
+      <button type="button" id="btn-simulate-filters">
+        simulate allow_with_filters
+      </button>
+      <button type="button" id="btn-simulate-agegate">
+        simulate age_gate
+      </button>
+      <button type="button" id="btn-simulate-reject">
+        simulate reject + rewrite
+      </button>
+    </div>
+
+    <div class="row">
+      <div class="pill-row">
+        <span class="pill">status: allow / with_filters / age_gate / reject</span>
+        <span class="pill">charter: honored / limited</span>
+        <span class="pill">uiMessage: end_user vs developer</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: synthetic response (mirrors index.js shape) -->
+  <section class="card" aria-label="Visual rights assessment response">
+    <header class="card-header">
+      <div class="card-title">Synthetic assessImagePrompt payload</div>
+      <div class="tag">shape mirror · src/imageCompliance/index.js</div>
+    </header>
+
+    <div class="row">
+      <div class="kv small">
+        <strong>Trace id</strong>
+        <span id="trace-id">–</span>
+      </div>
+      <div class="kv small">
+        <strong>Status</strong>
+        <span id="status-label">–</span>
+      </div>
+      <div class="kv small">
+        <strong>requiresAgeCheck</strong>
+        <span id="agecheck-label">–</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="kv small">
+        <strong>uiMode</strong>
+        <span id="uimode-label">developer</span>
+      </div>
+      <div class="kv small">
+        <strong>policyProfile</strong>
+        <span id="profile-label">default</span>
+      </div>
+      <div class="kv small">
+        <strong>locale</strong>
+        <span id="locale-label-view">global</span>
+      </div>
+    </div>
+
+    <div class="panel mono" id="payload-panel">{}</div>
+
+    <div class="row">
+      <div class="small">
+        Response follows:
+        <span class="kv">
+          <strong>id · status · allowReasons · blockReasons · filters · prompt · mitigations · uiMessage · charter · classification · policyVersion</strong>
+        </span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  function buildTraceId() {
+    const now = new Date().toISOString();
+    return "trace_" + now.replace(/[^0-9]/g, "");
+  }
+
+  function buildBaseOptions() {
+    const userAgeRaw = document.getElementById("user-age").value.trim();
+    const userAge = userAgeRaw === "" ? null : Number(userAgeRaw);
+    const locale = String(document.getElementById("locale").value || "global").slice(0, 32);
+    const policyProfile = String(document.getElementById("policy-profile").value || "default").slice(0, 64);
+    const uiMode = String(document.getElementById("ui-mode").value || "developer").slice(0, 24);
+
+    return {
+      userAge: Number.isFinite(userAge) ? userAge : null,
+      locale,
+      policyProfile,
+      uiMode
+    };
+  }
+
+  function classificationStub(promptText) {
+    const lower = (promptText || "").toLowerCase();
+    const flags = {
+      has_violence: /blood|gore|violence|torture/.test(lower),
+      has_sexual: /sexual|nudity|explicit/.test(lower),
+      has_youth: /child|minor|teen|young/.test(lower),
+      has_biometric: /face scan|iris|fingerprint|biometric/.test(lower),
+      political: /election|campaign|propaganda|president/.test(lower),
+      medical: /diagnosis|treatment|medical|x-ray/.test(lower)
+    };
+
+    const buckets = [];
+    if (flags.has_violence) buckets.push("violence");
+    if (flags.has_sexual) buckets.push("sexual");
+    if (flags.has_youth) buckets.push("youth");
+    if (flags.has_biometric) buckets.push("biometric");
+    if (flags.political) buckets.push("political");
+    if (flags.medical) buckets.push("medical");
+
+    return {
+      categories: buckets,
+      risky: buckets.length > 0,
+      tokens: Object.keys(flags).filter(k => flags[k])
+    };
+  }
+
+  function policyEngineStub({ promptText, classification, userAge, locale, policyProfile }) {
+    const allowReasons = [];
+    const blockReasons = [];
+    const filters = [];
+
+    let status = "allow";
+
+    if (classification.categories.includes("violence")) {
+      status = "allow_with_filters";
+      filters.push("no_graphic_violence");
+    }
+
+    if (classification.categories.includes("sexual")) {
+      if (classification.categories.includes("youth") || (userAge !== null && userAge < 18)) {
+        status = "reject";
+        blockReasons.push("sexual_minor_risk");
+      } else {
+        status = "age_gate";
+        blockReasons.push("mature_only_content");
+      }
+    }
+
+    if (classification.categories.includes("biometric")) {
+      filters.push("blur_faces");
+      if (status === "allow") status = "allow_with_filters";
+    }
+
+    if (policyProfile === "strict_minor" && userAge !== null && userAge < 18) {
+      if (classification.risky) {
+        status = "reject";
+        blockReasons.push("strict_minor_guardrail");
+      }
+    }
+
+    if (!blockReasons.length) {
+      allowReasons.push("policy_matched_for_profile");
+    }
+
+    return { status, allowReasons, blockReasons, filters };
+  }
+
+  function rewriterStub(promptText, classification, initialDecision) {
+    const mitigations = [];
+    let rewritten = promptText || "";
+
+    if (initialDecision.status === "reject") {
+      if (classification.categories.includes("sexual")) {
+        rewritten = rewritten.replace(/sexual|nudity|explicit/gi, "non-sexual");
+        mitigations.push("strip_sexual_language");
+      }
+      if (classification.categories.includes("violence")) {
+        rewritten = rewritten.replace(/blood|gore|violence|torture/gi, "non-violent");
+        mitigations.push("soften_violence_terms");
+      }
+      if (classification.categories.includes("youth")) {
+        rewritten = rewritten.replace(/child|minor|teen|young/gi, "adult");
+        mitigations.push("age_elevation");
+      }
+    }
+
+    if (rewritten === promptText) {
+      mitigations.push("no_effective_rewrite");
+    }
+
+    return { prompt: rewritten, mitigations };
+  }
+
+  function mapDecisionToCharterStub(finalDecision) {
+    const honored = [];
+    const limited = [];
+
+    if (finalDecision.status === "allow" || finalDecision.status === "allow_with_filters") {
+      honored.push("R1_MATURE_EXPRESSION");
+      if (finalDecision.filters.includes("blur_faces")) honored.push("R4_PRIVACY_AWARE_RENDERING");
+      if (finalDecision.filters.includes("no_graphic_violence")) honored.push("R3_DIGNITY_PRESERVATION");
+    } else if (finalDecision.status === "age_gate") {
+      honored.push("R7_YOUTH_SAFETY");
+      limited.push("R1_MATURE_EXPRESSION");
+    } else if (finalDecision.status === "reject") {
+      honored.push("R7_YOUTH_SAFETY");
+      honored.push("R6_NON_EXPLOITATION");
+      limited.push("R1_MATURE_EXPRESSION");
+      limited.push("R4_PRIVACY_AWARE_RENDERING");
+    }
+
+    return { honored, limited };
+  }
+
+  function buildUiMessageStub({ originalPrompt, rewrittenPrompt, status, decision, mitigations, charterMapping, uiMode }) {
+    const same = (originalPrompt || "").trim() === (rewrittenPrompt || "").trim();
+    const rightsHonored = (charterMapping.honored || []).join(", ");
+    const rightsLimited = (charterMapping.limited || []).join(", ");
+
+    if (status === "allow") {
+      if (uiMode === "end_user") {
+        return "ok! here's your image.";
+      }
+      return "ok! here's your image. (rights honored: " + (rightsHonored || "R1_MATURE_EXPRESSION") + ")";
+    }
+
+    if (status === "allow_with_filters") {
+      const f = decision.filters && decision.filters.length
+        ? " with filters: " + decision.filters.join(", ")
+        : "";
+      if (uiMode === "end_user") {
+        return "ok! here's your image" + f + ".";
+      }
+      return "ok! here's your image" + f + ". (rights honored: " + (rightsHonored || "R1_MATURE_EXPRESSION") + ")";
+    }
+
+    if (status === "age_gate") {
+      if (uiMode === "end_user") {
+        return "age verification required before generating this image.";
+      }
+      return "age verification required. (limited rights: " + (rightsLimited || "R9_JURISDICTION_AWARE_RIGHTS_FORWARD") + ")";
+    }
+
+    const reason = (decision.blockReasons || []).join(", ") || "policy_violation";
+    const mitigationNote = mitigations && mitigations.length
+      ? " A safer variant was attempted via: " + mitigations.join(", ") + "."
+      : "";
+    const rewriteNote = same ? "" : ' Suggested safer prompt: "' + rewrittenPrompt + '".';
+    if (uiMode === "end_user") {
+      return "image-generation failed due to " + reason + "." + rewriteNote;
+    }
+    return "image-generation failed due to " + reason + "." + rewriteNote + mitigationNote + " (rights limited: " + (rightsLimited || "none") + ")";
+  }
+
+  function getCharterStub() {
+    return { version: "visual-rights-charter-v1" };
+  }
+
+  function runAssessmentSimulation(kind) {
+    const originalPrompt = String(document.getElementById("original-prompt").value || "").slice(0, 8000);
+    const options = buildBaseOptions();
+    const now = new Date().toISOString();
+    const id = buildTraceId();
+    const charter = getCharterStub();
+
+    const classification = classificationStub(originalPrompt);
+    let initialDecision = policyEngineStub({
+      promptText: originalPrompt,
+      classification,
+      userAge: options.userAge,
+      locale: options.locale,
+      policyProfile: options.policyProfile
+    });
+
+    if (kind === "force_allow") initialDecision.status = "allow";
+    if (kind === "force_filters") initialDecision.status = "allow_with_filters";
+    if (kind === "force_age_gate") initialDecision.status = "age_gate";
+    if (kind === "force_reject") initialDecision.status = "reject";
+
+    let rewrittenPrompt = originalPrompt;
+    let mitigations = [];
+    let finalDecision = initialDecision;
+    let postClassification = classification;
+
+    if (initialDecision.status === "reject") {
+      const rewriteResult = rewriterStub(originalPrompt, classification, initialDecision);
+      rewrittenPrompt = rewriteResult.prompt;
+      mitigations = rewriteResult.mitigations;
+      postClassification = classificationStub(rewrittenPrompt);
+      finalDecision = policyEngineStub({
+        promptText: rewrittenPrompt,
+        classification: postClassification,
+        userAge: options.userAge,
+        locale: options.locale,
+        policyProfile: options.policyProfile
+      });
+    }
+
+    const effectiveStatus = finalDecision.status;
+    const charterMapping = mapDecisionToCharterStub(finalDecision);
+
+    const uiMessage = buildUiMessageStub({
+      originalPrompt,
+      rewrittenPrompt,
+      status: effectiveStatus,
+      decision: finalDecision,
+      mitigations,
+      charterMapping,
+      uiMode: options.uiMode
+    });
+
+    const response = {
+      id,
+      status: effectiveStatus,
+      requiresAgeCheck: effectiveStatus === "age_gate",
+      allowReasons: finalDecision.allowReasons || [],
+      blockReasons: finalDecision.blockReasons || [],
+      filters: finalDecision.filters || [],
+      prompt: rewrittenPrompt,
+      mitigations,
+      uiMessage,
+      charter: {
+        version: charter.version,
+        honored: charterMapping.honored,
+        limited: charterMapping.limited
+      },
+      policyProfile: options.policyProfile,
+      locale: options.locale,
+      classification,
+      policyVersion: "v1.0.0-simulated",
+      timestamp: now,
+      originalPrompt,
+      note: "Simulated Visual Rights Charter path (front-end only)."
+    };
+
+    document.getElementById("trace-id").textContent = response.id;
+    document.getElementById("status-label").textContent = response.status;
+    document.getElementById("agecheck-label").textContent = String(response.requiresAgeCheck);
+    document.getElementById("uimode-label").textContent = options.uiMode;
+    document.getElementById("profile-label").textContent = options.policyProfile;
+    document.getElementById("locale-label-view").textContent = options.locale;
+
+    document.getElementById("payload-panel").textContent = JSON.stringify(response, null, 2);
+  }
+
+  document.getElementById("btn-simulate-allow").addEventListener("click", () => {
+    runAssessmentSimulation("force_allow");
+  });
+
+  document.getElementById("btn-simulate-filters").addEventListener("click", () => {
+    runAssessmentSimulation("force_filters");
+  });
+
+  document.getElementById("btn-simulate-agegate").addEventListener("click", () => {
+    runAssessmentSimulation("force_age_gate");
+  });
+
+  document.getElementById("btn-simulate-reject").addEventListener("click", () => {
+    runAssessmentSimulation("force_reject");
+  });
+
+  document.getElementById("btn-seed-allow").addEventListener("click", () => {
+    document.getElementById("original-prompt").value =
+      "Generate an image of a renewable-energy smart city with transparent solar glass, "\
+      + "accessible transit, and non-identifiable silhouettes exploring XR overlays in public plazas.";
+  });
+
+  document.getElementById("btn-seed-agegate").addEventListener("click", () => {
+    document.getElementById("original-prompt").value =
+      "Generate a tasteful, mature fashion editorial cover shot for adults, no nudity, "\
+      + "no minors, suitable for age-gated magazines.";
+    document.getElementById("user-age").value = "17";
+  });
+
+  document.getElementById("btn-seed-block").addEventListener("click", () => {
+    document.getElementById("original-prompt").value =
+      "Requesting a disallowed, high-risk prompt here for internal policy testing in a sandbox. "\
+      + "Use wording that would clearly violate minor protection and biometric safety rules, "\
+      + "but do NOT run this in production.";
+    document.getElementById("user-age").value = "15";
+    document.getElementById("policy-profile").value = "strict_minor";
+  });
+</script>
+</body>
+</html>
